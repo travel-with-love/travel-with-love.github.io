@@ -546,13 +546,9 @@
         </div>
     </div>
     <script>
-
-    </script>
-    <script>
         let INDEXES = 0;
 
         loadXMLDoc();
-        // handleVisibilityOption();
         function loadXMLDoc() {
             var xmlhttp = new XMLHttpRequest();
             xmlhttp.onreadystatechange = function () {
@@ -637,7 +633,7 @@
         }
         
         function handleVisibilityOption() {
-            for (let i = 1; i < INDEXES + 1; i++) {
+            for (let i = 0; i < INDEXES; i++) {
                 let indexArea = document.getElementById(`index${i}`);
                 indexArea.addEventListener("click", (ev) => {
                     let indexContents = document.getElementsByClassName(`index${i}`);
