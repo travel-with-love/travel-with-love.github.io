@@ -546,107 +546,12 @@
         </div>
     </div>
     <script>
-        let INDEXES = 0;
-
-        loadXMLDoc();
-        function loadXMLDoc() {
-            var xmlhttp = new XMLHttpRequest();
-            xmlhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    loadLocationDetails(this);
-                }
-            };
-            xmlhttp.open("GET", "locations.xml", true);
-            xmlhttp.send();
-        }
-
-        function loadLocationDetails(xml) {
-            let xmlDoc = xml.responseXML;
-            let locations = xmlDoc.getElementsByTagName("location");
-            let locationsNode = document.getElementById("locations");
-            INDEXES = locations.length;
-            for (let i = 0; i < locations.length; i++) {
-                let title = locations[i].getElementsByTagName("title")[0].innerHTML;
-                let image = locations[i].getElementsByTagName("image")[0].innerHTML;
-                if (title == "") {
-                    continue;
-                }
-                image = decodeURIComponent(image);
-                let locationNode = document.createElement("div");
-                locationNode.classList.add("col")
-                locationNode.id = `index${i}`;
-                let cardNode = document.createElement("div");
-                cardNode.classList.add("card");
-                locationNode.appendChild(cardNode);
-                let imageNode = document.createElement("img");
-                imageNode.classList.add("card-img-top");
-                imageNode.setAttribute("src", image);
-                cardNode.appendChild(imageNode);
-                let cardBodyNode1 = document.createElement("div");
-                cardBodyNode1.classList.add("card-body");
-                cardNode.appendChild(cardBodyNode1);
-                let titleNode = document.createElement("h5");
-                titleNode.innerText = title;
-                cardBodyNode1.appendChild(titleNode);
-
-                let descriptions = locations[i].getElementsByTagName("description");
-                for (let j = 0; j < descriptions.length; j++) {
-                    let descriptionNode = document.createElement("p");
-                    descriptionNode.classList.add("card-text");
-                    descriptionNode.classList.add(`index${i}`);
-                    descriptionNode.innerHTML = descriptions[j].innerHTML;
-                    cardBodyNode1.appendChild(descriptionNode);
-
-                }
-
-                let isVisited = locations[i].getElementsByTagName("isVisited")[0].innerHTML;
-                let cardBodyNode2 = document.createElement("div");
-                cardBodyNode2.classList.add("card-body");
-                let unOrderList = document.createElement("ul");
-                unOrderList.classList.add("list-group");
-                unOrderList.classList.add("list-group-flush");
-                let isVisitedNode = document.createElement("li");
-                isVisitedNode.classList.add("list-group-item");
-                isVisitedNode.innerHTML = `Visited: ${isVisited}`;
-                unOrderList.appendChild(isVisitedNode);
-
-                let links = locations[i].getElementsByTagName("link");
-                for (let k = 0; k < links.length; k++) {
-                    let linkNode = document.createElement("li");
-                    linkNode.classList.add("list-group-item");
-                    let anchorLinkNode = document.createElement("a");
-                    anchorLinkNode.setAttribute("target", "_blank");
-                    anchorLinkNode.setAttribute("href", links[k].getElementsByTagName("url")[0].innerHTML);
-                    anchorLinkNode.innerHTML = links[k].getElementsByTagName("name")[0].innerHTML;
-                    linkNode.appendChild(anchorLinkNode);
-                    unOrderList.appendChild(linkNode);
-
-                }
-
-
-                cardBodyNode2.appendChild(unOrderList);
-                cardNode.appendChild(cardBodyNode2);
-
-                locationsNode.appendChild(locationNode);
-            }
-            handleVisibilityOption();
-        }
         
-        function handleVisibilityOption() {
-            for (let i = 0; i < INDEXES; i++) {
-                let indexArea = document.getElementById(`index${i}`);
-                indexArea.addEventListener("click", (ev) => {
-                    let indexContents = document.getElementsByClassName(`index${i}`);
-                    for (let indexContent of indexContents) {
-                        indexContent.classList.contains("d-none") ? indexContent.classList.remove("d-none") : indexContent.classList.add("d-none");
-                    }
-                });
-            }
-        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
+    <script type="module" src="./main.js"></script>
 </body>
 
 </html>
