@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js';
-import { getFirestore, doc, getDocs, setDoc, collection, addDoc, updateDoc, deleteDoc, deleteField } from 'https://www.gstatic.com/firebasejs/9.9.1/firebase-firestore.js';
+import { getFirestore, doc, getDocs, setDoc, collection, addDoc, updateDoc, deleteDoc, deleteField, query, orderBy } from 'https://www.gstatic.com/firebasejs/9.9.1/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyAhvE0ap8qYEJCJ8SdKqMujYZqNxOP8T80",
@@ -14,7 +14,134 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore();
 const locationCollection = collection(db, "locations");
+
+let INDEXES = 0;
 let locationArr = [];
+loadUI();
+await getLocations();
+// loadXMLDoc();
+
+function loadUI() {
+    let addLocationBtn = document.getElementById("addLocationButton");
+    let saveLocationBtn = document.getElementById("saveLocationBtn");
+    let moreDescriptionBtn = document.getElementById("addLocDescriptionMoreBtn");
+    let moreLinkBtn = document.getElementById("addLocLinkMore");
+    var addModal = new bootstrap.Modal(document.getElementById('addModal'), {
+        keyboard: false
+    });
+    addLocationBtn.addEventListener("click", (ev) => {
+        addModal.show();
+    });
+    moreDescriptionBtn.addEventListener("click", (ev) => {
+        let descriptionStack = document.getElementById("addLocDescriptionStack");
+        let rowNode = document.createElement("div");
+        rowNode.classList.add("row");
+        rowNode.classList.add("mb-1");
+        let colNode = document.createElement("div");
+        colNode.classList.add("col");
+        let descNode = document.createElement("input");
+        descNode.classList.add("form-control");
+        descNode.name = "addLocDescription";
+        colNode.appendChild(descNode);
+        rowNode.appendChild(colNode);
+        descriptionStack.appendChild(rowNode);
+    });
+    moreLinkBtn.addEventListener("click", (ev) => {
+        let linkStack = document.getElementById("addLocLinkStack");
+        let rowNode1 = document.createElement("div");
+        rowNode1.classList.add("row");
+        rowNode1.classList.add("mb-1");
+        let colNode11 = document.createElement("div");
+        colNode11.classList.add("col-3");
+        let labelNode1 = document.createElement("label");
+        labelNode1.innerText = "Name";
+        let colNode12 = document.createElement("div");
+        colNode12.classList.add("col-9");
+        let inputNode1 = document.createElement("input");
+        inputNode1.classList.add("form-control");
+        inputNode1.name = "addLocLinkName";
+        colNode11.appendChild(labelNode1);
+        colNode12.appendChild(inputNode1);
+        rowNode1.appendChild(colNode11);
+        rowNode1.appendChild(colNode12);
+        linkStack.appendChild(rowNode1);
+
+        let rowNode2 = document.createElement("div");
+        rowNode2.classList.add("row");
+        rowNode2.classList.add("mb-1");
+        let colNode21 = document.createElement("div");
+        colNode21.classList.add("col-3");
+        let labelNode2 = document.createElement("label");
+        labelNode2.innerText = "Link";
+        let colNode22 = document.createElement("div");
+        colNode22.classList.add("col-9");
+        let inputNode2 = document.createElement("input");
+        inputNode2.classList.add("form-control");
+        inputNode2.name = "addLocLinkURL";
+        colNode21.appendChild(labelNode2);
+        colNode22.appendChild(inputNode2);
+        rowNode2.appendChild(colNode21);
+        rowNode2.appendChild(colNode22);
+        linkStack.appendChild(rowNode2);
+    });
+    saveLocationBtn.addEventListener("click", async (ev) => {
+        let title = document.getElementById("addLocTitle");
+        let image = document.getElementById("addLocImage");
+        let isVisited = document.getElementById("addLocIsVisited");
+        let descriptionNodes = document.getElementsByName("addLocDescription");
+        let linkNameNodes = document.getElementsByName("addLocLinkName");
+        let linkURLNodes = document.getElementsByName("addLocLinkURL");
+
+        if (title.value == "") {
+            alert("Title can not be empty");
+            return;
+        }
+        if (isVisited.value == "") {
+            isVisited.value = "No";
+        }
+        let descriptions = [];
+        for (let i = 0; i < descriptionNodes.length; i++) {
+            if (descriptionNodes[i].value != "") {
+                descriptions.push(descriptionNodes[i].value);
+            }
+        }
+
+        let links = [];
+        for (let i = 0; i < linkNameNodes.length; i++) {
+            if (linkNameNodes[i].value != "" && linkURLNodes[i].value != "") {
+                links.push({
+                    name: linkNameNodes[i].value,
+                    link: linkURLNodes[i].value
+                });
+            }
+        }
+
+        let el = {
+            position: INDEXES,
+            title: title.value,
+            image: image.value,
+            isVisited: isVisited.value,
+            description: descriptions,
+            links: links
+        }
+        await addDoc(locationCollection, {
+            el
+        })
+            .then(
+                () => {
+                    alert("Location added successfully");
+                    addModal.hide();
+                    location.reload();
+                }
+            )
+            .catch(
+                (error) => {
+                    alert("Location added failed" + error);
+                }
+            );
+    });
+}
+
 async function addLocation(el) {
     await addDoc(locationCollection, {
         el
@@ -32,9 +159,7 @@ async function addLocation(el) {
 }
 
 async function getLocations() {
-
-    await getDocs(locationCollection).then(res => {
-        console.log(res);
+    await getDocs(query(locationCollection, orderBy("el.position", "desc"))).then(res => {
         res.forEach(doc => {
             locationArr.push(
                 {
@@ -43,14 +168,10 @@ async function getLocations() {
                     doc.data().el
                 });
         });
-        loadLocationDetailsWithFirebase();        
+        loadLocationDetailsWithFirebase();
     }).catch(error => alert("Failed to retrieve data" + error));
 
 }
-
-let INDEXES = 0;
-await getLocations();
-// loadXMLDoc();
 function loadXMLDoc() {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
@@ -130,7 +251,7 @@ function loadLocationDetailsWithXML(xml) {
             anchorLinkNode.setAttribute("target", "_blank");
             anchorLinkNode.setAttribute("href", links[k].getElementsByTagName("url")[0].innerHTML);
             anchorLinkNode.innerHTML = links[k].getElementsByTagName("name")[0].innerHTML;
-            locArr.push({name: links[k].getElementsByTagName("name")[0].innerHTML, link: links[k].getElementsByTagName("url")[0].innerHTML});
+            locArr.push({ name: links[k].getElementsByTagName("name")[0].innerHTML, link: links[k].getElementsByTagName("url")[0].innerHTML });
             linkNode.appendChild(anchorLinkNode);
             unOrderList.appendChild(linkNode);
 
@@ -217,7 +338,7 @@ function loadLocationDetailsWithFirebase() {
 function handleVisibilityOption() {
     for (let i = 0; i < INDEXES - 1; i++) {
         let indexArea = document.getElementById(`index${i}`);
-        indexArea.addEventListener("click", async (ev) => {
+        indexArea.addEventListener("click", (ev) => {
             let indexContents = document.getElementsByClassName(`index${i}`);
             for (let indexContent of indexContents) {
                 indexContent.classList.contains("d-none") ? indexContent.classList.remove("d-none") : indexContent.classList.add("d-none");
